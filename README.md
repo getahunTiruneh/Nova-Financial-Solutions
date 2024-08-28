@@ -55,7 +55,7 @@ To propose changes to this repository:
 2. **Clone Your Fork:**
    - Clone the forked repository to your local machine:
      ```bash
-     git clone [https://github.com/your-username/your-repo.git](https://github.com/getahunTiruneh/Nova-Financial-Solutions.git)
+     git clone https://github.com/getahunTiruneh/Nova-Financial-Solutions.git
      ```
 
 3. **Create a New Branch:**
