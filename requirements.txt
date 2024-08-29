@@ -1,0 +1,9 @@
+pynance
+plotly
+pandas
+numpy
+matplotlib
+seaborn
+textblob
+nltk
+scikit-learn
