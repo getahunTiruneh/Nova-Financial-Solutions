@@ -80,7 +80,4 @@ To propose changes to this repository:
 6. **Create a Pull Request:**
    - Go to the original repository and create a pull request from your forked repository and branch.
 
-7. **Discuss and Review:**
-   - Engage with the repository maintainers and respond to any feedback.
-
 Thank you for your contributions!
