@@ -38,6 +38,9 @@ class TextAnalysis:
         self.data = self.data.drop(['Unnamed: 0'], axis=1)
         return self.data
     
+    def format_date(self):
+        self.data['date'] = pd.to_datetime(self.data['date'], format='ISO8601')
+        return self.data['date']
         # Descriptive Statistics
     def headline_length_stats(self):
         
@@ -68,7 +71,8 @@ class TextAnalysis:
         
         :return: Tuple of DataFrames - (articles_over_time, articles_by_day)
         """
-        self.data['date'] = pd.to_datetime(self.data['date'], errors='coerce',utc=True)
+        # call date format
+        self.format_date()
         self.data['year'] = self.data['date'].dt.year
         self.data['month'] = self.data['date'].dt.month
         self.data['day_of_week'] = self.data['date'].dt.day_name()
@@ -88,6 +92,8 @@ class TextAnalysis:
         :param articles_over_time: DataFrame containing article counts over time.
         :param articles_by_day: Series containing article counts by day of the week.
         """
+        # call date format
+        self.format_date()
         # Plotting article counts over time
         plt.figure(figsize=(12, 6))
         sns.lineplot(data=articles_over_time, x='month', y='article_count', hue='year', marker='o')
@@ -113,7 +119,8 @@ class TextAnalysis:
         """
         # Convert 'date' to datetime if not already done
         if 'date' not in self.data or self.data['date'].dtype != 'datetime64[ns]':
-            self.data['date'] = pd.to_datetime(self.data['date'], errors='coerce')
+            # call date format
+            self.format_date()
 
         # Group by date to see publication frequency over time
         publication_freq = self.data['date'].value_counts().sort_index()
@@ -131,6 +138,8 @@ class TextAnalysis:
         :param publication_freq: pd.Series of publication counts by date.
         :param publishing_times: pd.Series of publication counts by hour.
         """
+        # call date format
+        self.format_date()
         # Plot publication frequency over time
         plt.figure(figsize=(12, 6))
         plt.plot(publication_freq.index, publication_freq.values, marker='o')
@@ -251,7 +260,7 @@ class TextAnalysis:
 
         :return: tuple (pd.Series, pd.Series, pd.Series)
                  - publishers_with_domain: Frequency count of publishers with domains (emails).
-                 - publishers_without_domain: Frequency count of publishers without domains.
+                 - publishers_name: Frequency count of publishers without domains.
                  - publisher_domains: Frequency count of domains from publishers with emails.
         """
         # Extract domains from publishers
@@ -259,25 +268,25 @@ class TextAnalysis:
 
         # Separate publishers with and without domains
         publishers_with_domain = self.data.dropna(subset=['domain'])
-        publishers_without_domain = self.data[self.data['domain'].isna()]
+        publishers_name = self.data[self.data['domain'].isna()]
 
         # Count frequency of publishers with domains
         top_publishers_with_domain = publishers_with_domain['publisher'].value_counts()
 
         # Count frequency of publishers without domains
-        top_publishers = publishers_without_domain['publisher'].value_counts()
+        top_publishers = publishers_name['publisher'].value_counts()
 
         # Count frequency of domains
         publisher_domains = publishers_with_domain['domain'].value_counts()
 
         return top_publishers_with_domain, top_publishers, publisher_domains
 
-    def plot_publisher_analysis(self, publishers_with_domain, publishers_without_domain, publisher_domains):
+    def plot_publisher_analysis(self, publishers_with_domain, publishers_name, publisher_domains):
         """
         Plot analysis of publishers with and without domains, and their respective counts.
 
-        :param publishers_with_domain: pd.Series of publishers with domains and their article counts.
-        :param publishers_without_domain: pd.Series of publishers without domains and their article counts.
+        :param publishers_with_domain: pd.Series of publishers name with domains and their article counts.
+        :param publishers_name: pd.Series of publishers without domains and their article counts.
         :param publisher_domains: pd.Series of the domains extracted from publishers column.
         """
         # Plot publishers with domains
@@ -291,9 +300,9 @@ class TextAnalysis:
 
         # Plot publishers without domains
         plt.figure(figsize=(10, 6))
-        sns.barplot(x=publishers_without_domain.index[:5], y=publishers_without_domain.values[:5], palette='coolwarm')
+        sns.barplot(x=publishers_name.index[:5], y=publishers_name.values[:5], palette='coolwarm')
         plt.title('Top 5 Publishers by Article Count')
-        plt.xlabel('Publisher without Domain')
+        plt.xlabel('Publisher Name')
         plt.ylabel('Number of Articles')
         plt.xticks(rotation=45)
         plt.show()
@@ -302,9 +311,18 @@ class TextAnalysis:
         plt.figure(figsize=(10, 6))
         sns.barplot(x=publisher_domains.index[:5], y=publisher_domains.values[:5], palette='coolwarm')
         plt.title('Top 5 Publisher Domains by Article Count')
-        plt.xlabel('Domain')
+        plt.xlabel('Domain name')
         plt.ylabel('Number of Articles')
         plt.xticks(rotation=45)
         plt.show()
 
 
+    def save_data(self,columns):
+        """
+        Save the processed data to a specified file path.
+
+        :param columns: str, list of column names to save the processed data.
+        """
+        self.data = self.data[columns]
+        self.data.to_csv('final_news_data.csv', index=False)
+        print("Processed data saved to 'final_news_data.csv'")
