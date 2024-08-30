@@ -1,3 +1,5 @@
+pynance
+plotly
 pandas
 numpy
 matplotlib
