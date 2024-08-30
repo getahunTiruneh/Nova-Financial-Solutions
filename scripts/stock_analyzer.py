@@ -1,7 +1,11 @@
 import pandas as pd
 import os
-import yfinance as yf
+import pynance as pn
 import talib
+import matplotlib.pyplot as plt
+import plotly.express as px
+import plotly.express as px
+import plotly.express as px
 import plotly.express as px
 
 class StockPriceAnalyzer:
@@ -47,6 +51,7 @@ class StockPriceAnalyzer:
         
         self.data = merged_df
         return self.data
+
     def plot_price(self):
         """
         Plots the close price of the stock over time with respect to each stock symbol using Plotly Express.
@@ -59,67 +64,136 @@ class StockPriceAnalyzer:
         self.data['Date'] = pd.to_datetime(self.data['Date'],errors='coerce',utc=True)
         
         # Plot Close price for each stock symbol using Plotly Express
-        fig = px.line(
-            self.data, 
-            x='Date', 
-            y='Close', 
-            color='stock_symbol', 
-            title='Close Price Over Time for Different Stock Symbols',
-            labels={'Close': 'Price (USD)', 'Date': 'Date', 'stock_symbol': 'Stock Symbol'}
-        )
-        
-        fig.update_layout(
-            xaxis_title='Date',
-            yaxis_title='Price (USD)',
-            legend_title='Stock Symbol',
-            xaxis=dict(tickformat='%Y-%m-%d', tickangle=45)  # Format and rotate x-axis labels
-        )
-        
-        fig.show()
+       # Set the figure size
+        plt.figure(figsize=(12, 8))
+
+        # Plot Close prices over time for different stock symbols
+        for stock_symbol, group_data in self.data.groupby('stock_symbol'):
+            plt.plot(group_data['Date'], group_data['Close'], label=stock_symbol)
+
+        # Set title and labels
+        plt.title('Close Price Over Time for Different Stock Symbols')
+        plt.xlabel('Date')
+        plt.ylabel('Price (USD)')
+
+        # Rotate and format x-axis labels
+        plt.xticks(rotation=45)
+        plt.gca().xaxis.set_major_formatter(plt.matplotlib.dates.DateFormatter('%Y-%m-%d'))
+
+        # Show legend
+        plt.legend(title='Stock Symbol')
+
+        # Display the plot
+        plt.show()
         
         #Apply Analysis Indicators with TA-Lib 
-    def calculate_moving_average(self, data, window_size):
-        return talib.SMA(data, timeperiod=window_size)
-
     def calculate_technical_indicators(self, data):
+        self.data['Data']=pd.to_datetime(self.data['Date'], format='ISO8601')
         # Calculate various technical indicators
-        data['SMA'] = self.calculate_moving_average(data['Close'], 20)
+        data['SMA'] = talib.SMA(data['Close'], timeperiod=20)
         data['RSI'] = talib.RSI(data['Close'], timeperiod=14)
         data['EMA'] = talib.EMA(data['Close'], timeperiod=20)
         macd, macd_signal, _ = talib.MACD(data['Close'])
         data['MACD'] = macd
         data['MACD_Signal'] = macd_signal
-        # Add more indicators as needed
         return data
-    
-        # Stock Price with Moving Average
-    def plot_stock_data(self, data):
-        fig = px.line(data, x=data.index, y=['Close', 'SMA'], title='Stock Price with Moving Average')
-        fig.show()
-        # Plot Relative Strength Index (RSI)
-    def plot_rsi(self, data):
-        fig = px.line(data, x=data.index, y='RSI', title='Relative Strength Index (RSI)')
-        fig.show()
 
-        # Stock Price with Exponential Moving Average
-    def plot_ema(self, data):
-        fig = px.line(data, x=data.index, y=['Close', 'EMA'], title='Stock Price with Exponential Moving Average')
-        fig.show()
-        
-        # Plot Moving Average Convergence Divergence (MACD)
-    def plot_macd(self, data):
-        fig = px.line(data, x=data.index, y=['MACD', 'MACD_Signal'], title='Moving Average Convergence Divergence (MACD)')
-        fig.show()
-    
+    def plot_stock_data(self, data, symbol):
+        self.data['Date'] = pd.to_datetime(self.data['Date'],errors='coerce',utc=True)
+        plt.figure(figsize=(10, 5))
+        plt.plot(data['Date'], data['Close'], label='Close')
+        plt.plot(data['Date'], data['SMA'], label='SMA')
+        plt.title(f'{symbol} Stock Price with Moving Average')
+        plt.xlabel('Date')
+        plt.ylabel('Price')
+        plt.legend()
+        plt.show()
+
+    def plot_rsi(self, data, symbol):
+        plt.figure(figsize=(10, 5))
+        plt.plot(data['Date'], data['RSI'], label='RSI')
+        plt.title(f'{symbol} Relative Strength Index (RSI)')
+        plt.xlabel('Date')
+        plt.ylabel('RSI')
+        plt.legend()
+        plt.show()
+
+    def plot_ema(self, data, symbol):
+        plt.figure(figsize=(10, 5))
+        plt.plot(data['Date'], data['Close'], label='Close')
+        plt.plot(data['Date'], data['EMA'], label='EMA')
+        plt.title(f'{symbol} Stock Price with Exponential Moving Average')
+        plt.xlabel('Date')
+        plt.ylabel('Price')
+        plt.legend()
+        plt.show()
+
+    def plot_macd(self, data, symbol):
+        plt.figure(figsize=(10, 5))
+        plt.plot(data['Date'], data['MACD'], label='MACD')
+        plt.plot(data['Date'], data['MACD_Signal'], label='MACD Signal')
+        plt.title(f'{symbol} Moving Average Convergence Divergence (MACD)')
+        plt.xlabel('Date')
+        plt.ylabel('Value')
+        plt.legend()
+        plt.show()
+
+    def visualize_stocks(self, stock_data):
+        # Loop through each stock symbol
+        self.data['Date'] = pd.to_datetime(self.data['Date'],errors='coerce',utc=True)
+        for symbol in stock_data['stock_symbol'].unique():
+            data = stock_data[stock_data['stock_symbol'] == symbol].copy()
+            data = self.calculate_technical_indicators(data)
+            
+            # Plot all indicators for each stock symbol
+            self.plot_stock_data(data, symbol)
+            self.plot_rsi(data, symbol)
+            self.plot_ema(data, symbol)
+            self.plot_macd(data, symbol)
+            
+            
         # Calculate additional financial metrics using PyNance
-    def calculate_financial_metrics(self, data):
-        # Implement financial metric calculations here
-        data['Returns'] = data['Close'].pct_change()
-        # Additional metrics can be added here
-        return data
+    def calculate_financial_metrics(self):
+        self.data['Date'] = pd.to_datetime(self.data['Date'],format='ISO8601')
+    
+        # Calculate daily returns using pandas
+        self.data['Daily Returns'] = self.data['Close'].pct_change()
+
+        # Calculate rolling volatility using pandas (standard deviation)
+        self.data['Rolling Volatility'] = self.data['Close'].rolling(window=20).std()
+
+        # Use pynance to calculate Simple Moving Average (SMA)
+        # Assuming the 'pynance' library provides SMA or other financial metrics
+        self.data['Moving Average'] = self.data['Close'].rolling(window=10).mean()
+
+        # Calculate cumulative returns using pandas
+        self.data['Cumulative Returns'] = (1 + self.data['Daily Returns']).cumprod() - 1
+
+        return self.data
     
         #Plot financial metrics
-    def plot_financial_metrics(self, data):
-        data = data.dropna()
-        fig = px.line(data, x=data.index, y='Returns', title='Stock Returns Over Time')
-        fig.show()
+    def plot_financial_metrics(self):
+        self.data['Date'] = pd.to_datetime(self.data['Date'], format='ISO8601')
+        plt.figure(figsize=(14, 10))
+
+        # Plot Close Prices and Moving Average
+        plt.subplot(3, 1, 1)
+        plt.plot(self.data.index, self.data['Close'], label='Close Price', color='blue')
+        plt.plot(self.data.index, self.data['Moving Average'], label='Moving Average', color='red')
+        plt.title('Close Price and Moving Average')
+        plt.legend()
+
+        # Plot Daily Returns
+        plt.subplot(3, 1, 2)
+        plt.plot(self.data.index, self.data['Daily Returns'], label='Daily Returns', color='green')
+        plt.title('Daily Returns')
+        plt.legend()
+
+        # Plot Rolling Volatility
+        plt.subplot(3, 1, 3)
+        plt.plot(self.data.index, self.data['Rolling Volatility'], label='Rolling Volatility', color='orange')
+        plt.title('Rolling Volatility')
+        plt.legend()
+
+        plt.tight_layout()
+        plt.show()

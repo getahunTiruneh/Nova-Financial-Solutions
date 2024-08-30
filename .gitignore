@@ -1,8 +1,4 @@
 .venv
 data
-<<<<<<< HEAD
 __pycache__
 .pytest_cache
-=======
-__pycache__
->>>>>>> main
