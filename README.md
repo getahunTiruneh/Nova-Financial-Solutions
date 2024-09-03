@@ -44,7 +44,8 @@ The **FNSPID (Financial News and Stock Price Integration Dataset)** is designed 
 4. **Publisher Analysis:**
    - Identify which publishers contribute the most to the news feed and examine differences in the types of news they report.
    - If email addresses are used as publisher names, identify unique domains to see if certain organizations contribute more frequently.
-
+5. **Correlation Analysis:**
+   - Perform correlation analysis between different sentiment scores and key financial metrics
 ## Contribution
 
 To propose changes to this repository:
